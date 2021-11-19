@@ -75,7 +75,7 @@ public class Messages {
                 }
             }
             messagesLock.writeLock().lock();
-            messages.get(m).add(hostAck);
+            map.get(m).add(hostAck);
             messagesLock.writeLock().unlock();
             return true;
         }
@@ -285,5 +285,26 @@ public class Messages {
 
     public HashMap<Message, ArrayList<HostAck>> getMessages() {
         return Messages.messages;
+    }
+
+    public HashMap<Message, ArrayList<HostAck>> getMessagesClone() {
+        HashMap<Message, ArrayList<HostAck>> messagesClone = new HashMap<Message, ArrayList<HostAck>>();
+
+        messagesLock.readLock().lock();
+        for (HashMap.Entry<Message, ArrayList<HostAck>> entry : messages.entrySet()) {
+            Message key = entry.getKey();
+            Message newKey = Message.getClone(key);
+
+            ArrayList<HostAck> newValue = new ArrayList<HostAck>();
+            for (HostAck oldHA: entry.getValue()) {
+                HostAck newHA = HostAck.getClone(oldHA);
+                newValue.add(newHA);
+            }
+
+            messagesClone.put(newKey, newValue);
+        }
+        messagesLock.readLock().unlock();
+
+        return messagesClone;
     }
 }

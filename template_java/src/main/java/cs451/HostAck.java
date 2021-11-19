@@ -20,4 +20,10 @@ public class HostAck {
     public void setReceivedAck(boolean bool) {
         this.receivedAck = bool;
     }
+
+    public static HostAck getClone(HostAck h) {
+        HostAck newH = new HostAck(h.getHost(), h.getReceivedAck());
+
+        return newH;
+    }
 }

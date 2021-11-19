@@ -62,6 +62,17 @@ public class Message implements Comparable<Message> {
         this.delivered = bool;
     }
 
+    public static Message getClone(Message m) {
+        MessageType type = m.getType();
+        Host from = m.getFrom();
+        String content = new String(m.getContent());
+
+        Message newMessage = new Message(type, from, content);
+        newMessage.setDelivered(m.getDelivered());
+
+        return newMessage;
+    }
+
     // Compare Message objects
     @Override
     public boolean equals(Object o) {
