@@ -2,6 +2,8 @@ package cs451;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -29,48 +31,47 @@ public class PerfectLinks extends Thread {
     }
 
     public boolean send(Host dest, Message m) {
-        System.out.println("Inside send");
+        // System.out.println("Inside send");
         InetSocketAddress address = dest.getAddress();
         String content = m.toString();
 
-        if (udp.send(address, content)) {
-            // Update sent map
-            if (m.getType() != MessageType.ACK) {
-                messages.putMessageInMap(messages.getSent(), dest, m);
+        return udp.send(address, content);
+    }
+
+    /**
+     * Sends m to all hosts who have not sent an ack
+     * @param m
+     */
+    public void broadcast(Message m) {
+        ArrayList<HostAck> hostList = messages.getHostAcks(m);
+        if (!messages.isAllMessagesDelivered(m)) {
+            // Only send if message not delivered
+            for (HostAck ha: hostList) {
+                // Only send to hosts we have not received ack from
+                if (!ha.getReceivedAck() && !(ha.getHost().equals(me))) {
+                    send(ha.getHost(), m);
+                }
             }
-
-            return true;
         }
-
-        return false;
     }
 
     /**
      * Send messages per configuration
      * Do not send messages to self
      */
-    public void sendAll() {
-        
+    public void sendMessages() {
         // Send messages until we receive all acks
         boolean firstBroadcast = true;
+        // Must sort messages by content
         while (true) {
-            // For Host in config that is not me
-            for (Config config: configs) {
-                Host peer = hosts.getHostById(config.getId());
-                if (peer.getId() != me.getId()) {
-                    // Send all messages
-                    List<Message> msgList = messages.getMessages().get(peer);
-                    if (msgList != null) {
-                        for (Message m: msgList) {
-                            if (m.getReceivedAck() == false) {
-                                send(peer, m);
-                                writeBroadcast(m, firstBroadcast);
-                            }
-                        }
-                    }
-                    firstBroadcast = false;
-                }
+            ArrayList<Message> msgList = new ArrayList<Message>(messages.getMessages().keySet());
+            Collections.sort(msgList);
+
+            for (Message m : msgList) {
+                broadcast(m);
+                writeBroadcast(m, firstBroadcast);
             }
+            firstBroadcast = false;
         }
     }
 
@@ -95,6 +96,7 @@ public class PerfectLinks extends Thread {
                 // System.out.printf("TYPE: %s\n", message.getType());
                 // System.out.printf("CONTENT: %s\n", message.getContent());
                 if (message.getType() == MessageType.BROADCAST) {
+                    messages.putMessageInMap(messages.getMessages(), from, message);
                     deliver(from, message);
                     // Send ack back, even if already delivered
                     Message ack = new Message(MessageType.ACK, me, message.getContent());
@@ -122,11 +124,16 @@ public class PerfectLinks extends Thread {
     }
 
     private void deliver(Host src, Message m) {
-        if (messages.putMessageInMap(messages.getDelivered(), src, m)) {
-            deliver(src, m);
+        if (!messages.isMessageDelivered(m, src)) {
+            System.out.println("Message not delivered");
+            System.out.println(m.toString());
+            messages.deliverMessage(m);
             writeDeliver(src, m);
             // listener.PerfectLinksDeliver(src, m);
+        } else {
+            System.out.println("Message delivered");
         }
+
     }
 
     private void writeDeliver(Host p, Message m) {

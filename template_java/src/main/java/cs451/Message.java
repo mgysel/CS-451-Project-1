@@ -6,17 +6,17 @@ enum MessageType {
     FORWARD
 }
 
-public class Message {
+public class Message implements Comparable<Message> {
     private MessageType type;
     private Host from;
     private String content;
-    private boolean receivedAck;
+    private boolean delivered;
 
     public Message(MessageType type, Host from, String content) {
         this.type = type;
         this.from = from;
         this.content = content;
-        this.receivedAck = false;
+        this.delivered = false;
     }
 
     public Message(String message, Hosts hosts) {
@@ -38,7 +38,7 @@ public class Message {
                 System.out.printf("Cannot convert message because ID is a null pointer: ", e);
             }
             this.content = messageComponents[2];
-            this.receivedAck = false;
+            this.delivered = false;
         }
     }
 
@@ -54,12 +54,12 @@ public class Message {
         return this.from;
     }
 
-    public boolean getReceivedAck() {
-        return this.receivedAck;
+    public boolean getDelivered() {
+        return this.delivered;
     }
 
-    public void setReceivedAck(boolean bool) {
-        this.receivedAck = bool;
+    public void setDelivered(boolean bool) {
+        this.delivered = bool;
     }
 
     // Compare Message objects
@@ -80,7 +80,7 @@ public class Message {
         Message m = (Message) o;
         
         // Compare the data members and return accordingly
-        if (m.getType() == this.getType() && m.getContent().equals(this.getContent())) {
+        if (m.getType() == this.getType() && m.getFrom().equals(this.getFrom()) && m.getContent().equals(this.getContent())) {
             return true;
         }
 
@@ -101,4 +101,16 @@ public class Message {
 
         return output;
     }
+
+    @Override
+    public int compareTo(Message m) {
+        try {
+            Integer thisInt = Integer.parseInt(this.getContent());
+            Integer mInt = Integer.parseInt(m.getContent());
+            return thisInt.compareTo(mInt);
+        } catch(NumberFormatException e) {
+            return this.getContent().compareTo(m.getContent());
+        }
+    }
+
 }

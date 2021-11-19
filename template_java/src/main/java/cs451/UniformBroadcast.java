@@ -31,7 +31,7 @@ public class UniformBroadcast extends Thread implements MyEventListener {
     // Broadcast
     public void broadcast() {
         // Send all messages
-        pl.sendAll();
+        pl.sendMessages();
     }
 
     // NOTE: start is used to run a thread asynchronously
@@ -66,8 +66,8 @@ public class UniformBroadcast extends Thread implements MyEventListener {
                     pl.send(from, ack);
                 } else if (message.getType() == MessageType.ACK) {
                     // Process ACK
-                    Message removeMessage = new Message(MessageType.BROADCAST, me, message.getContent());
-                    messages.removeMessage(messages.getMessages(), from, removeMessage);
+                    Message m = new Message(MessageType.BROADCAST, me, message.getContent());
+                    messages.updateAck(from, m);
                 } else {
                     System.out.println("***** Not proper messages sent");
                     System.out.printf("Message: %s\n", received);

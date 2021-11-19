@@ -139,14 +139,14 @@ public class Main {
         // *************************************************************
         // PerfectLinks Configuration
         // *************************************************************
-        // List<Config> configs = parser.plConfigConfigs();
-        // printConfigs(parser, configs);
+        List<Config> configs = parser.plConfigConfigs();
+        printConfigs(parser, configs);
 
         // *************************************************************
         // UniformBroadcast Configuration
         // *************************************************************
-        List<Config> configs = getBroadcastConfigs(parser, hosts);
-        printConfigs(parser, configs);
+        // List<Config> configs = getBroadcastConfigs(parser, hosts);
+        // printConfigs(parser, configs);
 
 
         System.out.println("Doing some initialization\n");
@@ -160,10 +160,10 @@ public class Main {
         // *********************************************************************
         // SEND AND RECEIVE MESSAGES
         // *********************************************************************
-        // pl.start();
-        // pl.sendAll();
-        ub.start();
-        ub.broadcast();
+        pl.start();
+        pl.sendMessages();
+        // ub.start();
+        // ub.broadcast();
 
         // *********************************************************************
 
